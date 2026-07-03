@@ -1,0 +1,10 @@
+[Unit]
+Description=Literary Clock 2026 — render current quote to Inky wHAT
+After=multi-user.target
+
+[Service]
+Type=oneshot
+# Adjust the path if you cloned the repo somewhere other than /home/pi.
+WorkingDirectory=/home/pi/literary-clock-2026-edition
+ExecStart=/usr/bin/python3 /home/pi/literary-clock-2026-edition/scripts/update_display.py --sleep-start 1 --sleep-end 6
+User=pi

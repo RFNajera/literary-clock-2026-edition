@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh the Literary Clock every minute
+
+[Timer]
+# Fire at the top of every minute, aligned to the wall clock.
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=false
+
+[Install]
+WantedBy=timers.target
