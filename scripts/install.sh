@@ -9,11 +9,12 @@
 #
 # What it does:
 #   1. Enables SPI + I2C (needed by the Inky wHAT).
-#   2. Installs the Pimoroni Inky driver into a virtual environment
-#      (~/.virtualenvs/pimoroni) — required on Trixie, where system-wide pip is
-#      blocked by PEP 668 ("externally-managed-environment").
-#   3. Installs Pillow into that same environment.
-#   4. Adds a per-minute cron job that renders the current quote to the panel.
+#   2. Creates a virtual environment at ~/.virtualenvs/pimoroni and installs the
+#      Inky driver + Pillow into it. A venv is required on Trixie, where
+#      system-wide pip is blocked by PEP 668 ("externally-managed-environment").
+#      We build the venv ourselves and pip-install directly, so the install is
+#      fully non-interactive (no prompts from Pimoroni's own installer).
+#   3. Adds a per-minute cron job that renders the current quote to the panel.
 #
 # Safe to re-run: it detects an existing venv and an existing cron line and
 # will not duplicate them.
@@ -37,37 +38,39 @@ else
     echo "raspi-config not found — enable SPI and I2C manually if the panel does not update."
 fi
 
-# ── 2. Install the Pimoroni Inky driver into a virtualenv ───────────────────────
-if [ -x "${VENV_PY}" ] && "${VENV_PY}" -c "import inky" >/dev/null 2>&1; then
-    say "Pimoroni Inky driver already present in ${VENV_DIR} — skipping"
-else
-    say "Installing the Pimoroni Inky driver (creates ${VENV_DIR})"
-    sudo apt-get update -y
-    sudo apt-get install -y git python3-venv
-    TMP_INKY="$(mktemp -d)"
-    git clone --depth=1 https://github.com/pimoroni/inky "${TMP_INKY}/inky"
-    # Pimoroni's installer creates and populates ~/.virtualenvs/pimoroni.
-    # Answer prompts non-interactively where possible.
-    ( cd "${TMP_INKY}/inky" && yes | ./install.sh ) || \
-      ( cd "${TMP_INKY}/inky" && ./install.sh )
-    rm -rf "${TMP_INKY}"
-fi
+# ── 2. Create the virtual environment and install Inky + Pillow ─────────────────
+# We build the venv explicitly (with access to the system apt-installed GPIO/SPI
+# packages) and pip-install into it directly. This avoids Pimoroni's interactive
+# "create a virtual environment? [y/N]" prompt entirely, so the run is
+# deterministic and unattended.
+say "Installing prerequisites (git, python3-venv)"
+sudo apt-get update -y
+sudo apt-get install -y git python3-venv python3-full
 
-# Fallback: if the venv still doesn't exist (installer layout changed), build a
-# minimal one so the clock can still run.
 if [ ! -x "${VENV_PY}" ]; then
-    say "Creating a fallback virtual environment at ${VENV_DIR}"
+    say "Creating virtual environment at ${VENV_DIR}"
     mkdir -p "$(dirname "${VENV_DIR}")"
+    # --system-site-packages lets the venv see apt-provided RPi.GPIO / spidev,
+    # which the Inky driver relies on for hardware access.
     python3 -m venv --system-site-packages "${VENV_DIR}"
-    "${VENV_PY}" -m pip install --upgrade pip
-    "${VENV_PY}" -m pip install inky
+else
+    say "Virtual environment already exists at ${VENV_DIR} — reusing it"
 fi
 
-# ── 3. Install Pillow into the same environment ─────────────────────────────────
-say "Installing Pillow into the environment"
-"${VENV_PY}" -m pip install --upgrade Pillow
+say "Installing the Inky driver and Pillow into the environment"
+"${VENV_PY}" -m pip install --upgrade pip
+"${VENV_PY}" -m pip install --upgrade inky Pillow
 
-# ── 4. Install the per-minute cron job ──────────────────────────────────────────
+# Sanity check that the display library imports.
+if "${VENV_PY}" -c "import inky" >/dev/null 2>&1; then
+    echo "Inky driver installed successfully."
+else
+    echo "WARNING: the 'inky' package did not import cleanly. The clock will"
+    echo "still render frames, but pushing to the panel may fail. Re-run this"
+    echo "installer or check the pip output above."
+fi
+
+# ── 3. Install the per-minute cron job ──────────────────────────────────────────
 say "Installing the per-minute refresh cron job"
 CURRENT_CRON="$(crontab -l 2>/dev/null || true)"
 if printf '%s\n' "${CURRENT_CRON}" | grep -Fq "${DRIVER}"; then

@@ -21,11 +21,16 @@ That's it. After the reboot the panel updates every minute on its own.
 `scripts/install.sh` is safe to re-run and handles everything:
 
 1. **Enables SPI and I2C** (the Inky wHAT needs both).
-2. **Installs the Pimoroni Inky driver** into a virtual environment at
-   `~/.virtualenvs/pimoroni`.
-3. **Installs Pillow** into that same environment.
-4. **Adds a cron job** that renders the current minute's quote to the panel
+2. **Creates a virtual environment** at `~/.virtualenvs/pimoroni` and installs
+   the Inky driver + Pillow into it. It builds the venv explicitly and
+   pip-installs directly, so there are **no interactive prompts** — the run is
+   fully unattended.
+3. **Adds a cron job** that renders the current minute's quote to the panel
    every minute (paused 01:00–06:00 to reduce e-ink wear).
+
+Because the installer creates the environment itself, you will **not** see
+Pimoroni's "This script should be run in a virtual Python environment. Would
+you like us to create and/or use a default one? [y/N]" prompt.
 
 ## Why a virtual environment (Trixie / PEP 668)
 
