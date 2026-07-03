@@ -43,9 +43,13 @@ fi
 # packages) and pip-install into it directly. This avoids Pimoroni's interactive
 # "create a virtual environment? [y/N]" prompt entirely, so the run is
 # deterministic and unattended.
-say "Installing prerequisites (git, python3-venv)"
+say "Installing prerequisites (git, python3-venv, image build headers)"
 sudo apt-get update -y
-sudo apt-get install -y git python3-venv python3-full
+# python3-pil / libjpeg / zlib / freetype: so that if pip ever has to build
+# Pillow from source (no prebuilt wheel for this Python/arch), the required
+# JPEG/zlib/FreeType headers are present and the build succeeds.
+sudo apt-get install -y git python3-venv python3-full \
+    libjpeg-dev zlib1g-dev libfreetype6-dev
 
 if [ ! -x "${VENV_PY}" ]; then
     say "Creating virtual environment at ${VENV_DIR}"
@@ -57,17 +61,23 @@ else
     say "Virtual environment already exists at ${VENV_DIR} — reusing it"
 fi
 
-say "Installing the Inky driver and Pillow into the environment"
+say "Installing the Inky driver into the environment"
 "${VENV_PY}" -m pip install --upgrade pip
-"${VENV_PY}" -m pip install --upgrade inky Pillow
+# Install Inky. It pulls in a compatible Pillow automatically. We do NOT force
+# a Pillow --upgrade: that can pull a newer source-only release and fail to
+# compile. Install Pillow only if it is somehow missing.
+"${VENV_PY}" -m pip install inky
+if ! "${VENV_PY}" -c "import PIL" >/dev/null 2>&1; then
+    say "Pillow not present — installing it"
+    "${VENV_PY}" -m pip install Pillow
+fi
 
-# Sanity check that the display library imports.
-if "${VENV_PY}" -c "import inky" >/dev/null 2>&1; then
-    echo "Inky driver installed successfully."
+# Sanity check that both libraries import.
+if "${VENV_PY}" -c "import inky, PIL" >/dev/null 2>&1; then
+    echo "Inky driver and Pillow are ready."
 else
-    echo "WARNING: the 'inky' package did not import cleanly. The clock will"
-    echo "still render frames, but pushing to the panel may fail. Re-run this"
-    echo "installer or check the pip output above."
+    echo "WARNING: 'inky' or 'PIL' did not import cleanly. The clock may not be"
+    echo "able to push to the panel. Re-run this installer or check the output above."
 fi
 
 # ── 3. Install the per-minute cron job ──────────────────────────────────────────
