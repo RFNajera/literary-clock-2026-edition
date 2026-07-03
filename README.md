@@ -54,40 +54,32 @@ literary-clock-2026-edition/
 
 ## Quick start (on the Raspberry Pi)
 
+Tested on **Raspberry Pi OS 13 "Trixie"**. Clone, run, reboot, go:
+
 ```bash
-git clone https://github.com/<your-username>/literary-clock-2026-edition.git
+git clone https://github.com/RFNajera/literary-clock-2026-edition.git
 cd literary-clock-2026-edition
-bash scripts/install.sh
+./scripts/install.sh
+sudo reboot
 ```
 
-The installer will:
+After the reboot the panel refreshes every minute on its own. The installer
+enables SPI/I2C, installs the Pimoroni Inky driver + Pillow into a virtual
+environment (required on Trixie — see below), and adds a per-minute cron job
+that pauses overnight (01:00–06:00) to reduce e-ink wear.
 
-1. `pip3 install Pillow inky`
-2. Install and enable a systemd timer that refreshes the display every minute.
+Full details, verification steps, the systemd alternative, and troubleshooting
+are in **[INSTALL.md](INSTALL.md)**.
 
-Draw a single frame immediately to test:
+### Note for Trixie / Bookworm (PEP 668)
 
-```bash
-python3 scripts/update_display.py
-```
-
-### Quiet hours (optional)
-
-The bundled service pauses refreshes overnight (01:00–06:00) to reduce e-ink
-wear. Adjust the `--sleep-start` / `--sleep-end` flags in
-`scripts/literary-clock.service`, then:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart literary-clock.timer
-```
-
-### Cron alternative
-
-If you prefer cron over systemd:
+Modern Raspberry Pi OS marks the system Python as "externally managed", so a
+plain `pip install` is blocked. The display libraries therefore live in a
+virtual environment at `~/.virtualenvs/pimoroni` (created by Pimoroni's
+installer), and the cron job calls that environment's Python directly:
 
 ```cron
-* * * * * /usr/bin/python3 /home/pi/literary-clock-2026-edition/scripts/update_display.py --sleep-start 1 --sleep-end 6
+* * * * * /home/pi/.virtualenvs/pimoroni/bin/python3 /home/pi/literary-clock-2026-edition/scripts/update_display.py --sleep-start 1 --sleep-end 6
 ```
 
 ## Previewing without a display

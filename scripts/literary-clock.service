@@ -4,7 +4,11 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-# Adjust the path if you cloned the repo somewhere other than /home/pi.
-WorkingDirectory=/home/pi/literary-clock-2026-edition
-ExecStart=/usr/bin/python3 /home/pi/literary-clock-2026-edition/scripts/update_display.py --sleep-start 1 --sleep-end 6
+# Optional alternative to the cron job installed by scripts/install.sh.
+# Adjust the user/paths if you cloned the repo somewhere other than /home/pi,
+# or run install.sh which uses cron instead. The ExecStart MUST use the
+# Pimoroni virtual environment's Python so the `inky` and `Pillow` libraries
+# are available (system-wide pip is blocked on Trixie by PEP 668).
 User=pi
+WorkingDirectory=/home/pi/literary-clock-2026-edition
+ExecStart=/home/pi/.virtualenvs/pimoroni/bin/python3 /home/pi/literary-clock-2026-edition/scripts/update_display.py --sleep-start 1 --sleep-end 6
