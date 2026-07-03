@@ -12,7 +12,7 @@ glance, the **book and author** appear below in a contrasting typeface, and a
 
 ![Literary Clock 2026 Edition preview — a book quote with the time phrase "Three twenty-three!" in bold on the left, and a two-hand analog clock with the weekday and date on the right](docs/preview.png)
 
-*Rendered at 2× scale of the native 400 × 300 panel. Quote set in Playfair Display with the time phrase bolded; attribution and date set in Courier Prime.*
+*Shown at 2× scale of the native 400 × 300 panel, rendered in true 1-bit black & white as the e-ink display shows it. Quote set in Bitter with the time phrase bolded; attribution and date set in Courier Prime.*
 
 This project takes the idea from
 [zenbuffy/LiteraryClock](https://github.com/zenbuffy/LiteraryClock) and
@@ -22,7 +22,7 @@ and rebuilds the presentation layer:
 - **Split layout** — the quote occupies the left 2/3; a clock + date occupies the right 1/3.
 - **Live rendering** — frames are drawn on the fly each minute (no pre-generated image library to build or store).
 - **Bolded time phrase** — the words that spell out the current time stand out in heavy weight.
-- **Typographic contrast** — quote set in **Playfair Display**, attribution/date set in **Courier Prime**.
+- **Typographic contrast** — quote set in **Bitter** (a slab serif chosen because its even stroke weight stays crisp on 1-bit e-ink), attribution/date set in **Courier Prime**.
 - **Two-hand analog clock** — a clean face (tick marks, no numbers) showing the current time, with the weekday and full date beneath it.
 - **Auto-fit** — quote text scales to fit; long attributions wrap to a second line.
 
@@ -38,7 +38,7 @@ literary-clock-2026-edition/
 ├── literary_clock.py                 # rendering engine (produces a 400x300 PIL image)
 ├── litclock_annotated_improved.csv   # quotes: HH:MM|time phrase|quote|book|author
 ├── fonts/
-│   ├── PlayfairDisplay.ttf           # quote body + bold time phrase (variable weight)
+│   ├── Bitter.ttf                    # quote body + bold time phrase (variable weight)
 │   ├── CourierPrime.ttf              # attribution / date
 │   ├── CourierPrime-Bold.ttf         # weekday
 │   └── *-OFL.txt                     # font licenses (SIL OFL 1.1)

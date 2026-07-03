@@ -40,7 +40,11 @@ RIGHT_X = LEFT_W
 # ── Font locations ─────────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
 FONT_DIR = os.path.join(_HERE, "fonts")
-F_QUOTE = os.path.join(FONT_DIR, "PlayfairDisplay.ttf")   # variable weight axis
+# Bitter (slab serif) is used for the quote: its even, sturdy stroke weight
+# stays crisp on the 1-bit (pure black/white, no anti-aliasing) e-ink panel,
+# unlike a high-contrast serif whose hairline strokes fragment. Courier Prime
+# (a distinct typewriter face) is kept for the attribution, weekday, and date.
+F_QUOTE = os.path.join(FONT_DIR, "Bitter.ttf")            # variable weight axis
 F_ATTRIB = os.path.join(FONT_DIR, "CourierPrime.ttf")
 F_ATTRIB_BOLD = os.path.join(FONT_DIR, "CourierPrime-Bold.ttf")
 
