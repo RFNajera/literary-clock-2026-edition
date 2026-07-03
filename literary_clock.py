@@ -20,6 +20,7 @@ Fonts (bundled in ./fonts):
 The quote CSV is pipe-delimited:  HH:MM|time phrase|quote|book|author
 """
 
+import calendar
 import csv
 import math
 import os
@@ -166,48 +167,104 @@ def _draw_quote_panel(draw, phrase, quote, book, author):
         y += attrib_line_h
 
 
-def _draw_clock_panel(draw, now):
-    # Divider between the two panels.
-    draw.line([(RIGHT_X, MARGIN), (RIGHT_X, H - MARGIN)], fill=BLACK, width=1)
-
-    cx = RIGHT_X + (W - RIGHT_X) // 2
-    cy = 95
-    r = 52
-
-    # Clean face: circle + tick marks only (no numbers).
+def _draw_analog_clock(draw, cx, cy, r, now):
+    """Draw a clean two-hand clock (tick marks, no numbers) centered at cx,cy."""
     draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=BLACK, width=2)
     for i in range(12):
         a = math.radians(i * 30)
-        x1 = cx + (r - 7) * math.sin(a)
-        y1 = cy - (r - 7) * math.cos(a)
+        x1 = cx + (r - 6) * math.sin(a)
+        y1 = cy - (r - 6) * math.cos(a)
         x2 = cx + r * math.sin(a)
         y2 = cy - r * math.cos(a)
         draw.line([(x1, y1), (x2, y2)], fill=BLACK, width=2)
 
     h = now.hour % 12
     m = now.minute
-    # Hour hand.
     ha = math.radians((h + m / 60) * 30)
     hr = r * 0.5
     draw.line([(cx, cy), (cx + hr * math.sin(ha), cy - hr * math.cos(ha))],
               fill=BLACK, width=4)
-    # Minute hand.
     ma = math.radians(m * 6)
     mr = r * 0.82
     draw.line([(cx, cy), (cx + mr * math.sin(ma), cy - mr * math.cos(ma))],
               fill=BLACK, width=2)
     draw.ellipse([cx - 3, cy - 3, cx + 3, cy + 3], fill=BLACK)
 
-    # Weekday (bold) + date, in the attribution typeface.
-    fday = _font(F_ATTRIB_BOLD, 18)
-    fdate = _font(F_ATTRIB, 13)
-    day = now.strftime("%A")
-    date = now.strftime("%b %d, %Y")
-    dy = cy + r + 18
-    dw = draw.textlength(day, font=fday)
-    draw.text((cx - dw / 2, dy), day, font=fday, fill=BLACK)
-    dtw = draw.textlength(date, font=fdate)
-    draw.text((cx - dtw / 2, dy + 24), date, font=fdate, fill=BLACK)
+
+def _draw_month_calendar(draw, panel_x, panel_w, top_y, now):
+    """Draw a compact month grid with weekday headers and today's date bolded
+    and boxed. Sunday-first columns."""
+    # Title: e.g. "July 2026"
+    ftitle = _font(F_ATTRIB_BOLD, 13)
+    title = now.strftime("%B %Y")
+    # Trim if it somehow exceeds the panel width.
+    while draw.textlength(title, font=ftitle) > panel_w - 6 and len(title) > 4:
+        ftitle = _font(F_ATTRIB_BOLD, 11)
+        break
+    tw = draw.textlength(title, font=ftitle)
+    cx = panel_x + panel_w / 2
+    draw.text((cx - tw / 2, top_y), title, font=ftitle, fill=BLACK)
+
+    # Grid geometry: 7 columns fit in the panel with small side padding.
+    pad = 6
+    grid_x = panel_x + pad
+    grid_w = panel_w - 2 * pad
+    col_w = grid_w / 7.0
+    row_h = 13
+    header_y = top_y + 20
+
+    fhdr = _font(F_ATTRIB_BOLD, 9)
+    fnum = _font(F_ATTRIB, 10)
+    fnum_b = _font(F_ATTRIB_BOLD, 10)
+
+    # Weekday headers (single letters), Sunday first.
+    headers = ["S", "M", "T", "W", "T", "F", "S"]
+    for i, hd in enumerate(headers):
+        hx = grid_x + i * col_w + col_w / 2
+        hw = draw.textlength(hd, font=fhdr)
+        draw.text((hx - hw / 2, header_y), hd, font=fhdr, fill=BLACK)
+
+    # Month matrix, Sunday-first weeks.
+    cal = calendar.Calendar(firstweekday=6)  # 6 = Sunday
+    weeks = cal.monthdayscalendar(now.year, now.month)
+    first_row_y = header_y + 14
+    for wk, week in enumerate(weeks):
+        for i, day in enumerate(week):
+            if day == 0:
+                continue
+            s = str(day)
+            is_today = (day == now.day)
+            f = fnum_b if is_today else fnum
+            cell_cx = grid_x + i * col_w + col_w / 2
+            cell_cy = first_row_y + wk * row_h + row_h / 2
+            sw = draw.textlength(s, font=f)
+            # Vertically center the digit within its row/box.
+            draw.text((cell_cx - sw / 2, cell_cy - 5), s, font=f, fill=BLACK)
+            if is_today:
+                # Box today's date for a clear highlight on 1-bit e-ink.
+                bx0 = grid_x + i * col_w + 1
+                bx1 = grid_x + (i + 1) * col_w - 1
+                by0 = first_row_y + wk * row_h + 0
+                by1 = first_row_y + (wk + 1) * row_h - 1
+                draw.rectangle([bx0, by0, bx1, by1], outline=BLACK, width=2)
+
+
+def _draw_clock_panel(draw, now):
+    # Divider between the two panels.
+    draw.line([(RIGHT_X, MARGIN), (RIGHT_X, H - MARGIN)], fill=BLACK, width=1)
+
+    panel_x = RIGHT_X
+    panel_w = W - RIGHT_X
+
+    # Analog clock: pushed to the TOP of the right panel.
+    cx = panel_x + panel_w // 2
+    r = 46
+    cy = MARGIN + r + 4
+    _draw_analog_clock(draw, cx, cy, r, now)
+
+    # Month calendar fills the BOTTOM of the right panel.
+    cal_top = cy + r + 12
+    _draw_month_calendar(draw, panel_x, panel_w, cal_top, now)
 
 
 def render(csv_path, when=None, out=None):

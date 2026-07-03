@@ -7,23 +7,25 @@ live analog clock.
 
 Every minute, the display shows a book quote that contains the current time.
 The **time phrase within the quote is bolded** so you can read the time at a
-glance, the **book and author** appear below in a contrasting typeface, and a
-**two-hand analog clock** with the **weekday and date** fills the right panel.
+glance, the **book and author** appear below in a contrasting typeface, and the
+right panel shows a **two-hand analog clock** up top with a **month calendar**
+below it, today's date boxed and bolded.
 
-![Literary Clock 2026 Edition preview — a book quote with the time phrase "Three twenty-three!" in bold on the left, and a two-hand analog clock with the weekday and date on the right](docs/preview.png)
+![Literary Clock 2026 Edition preview — a book quote with the time phrase "Three twenty-three!" in bold on the left, and a two-hand analog clock above a month calendar (today's date boxed) on the right](docs/preview.png)
 
-*Shown at 2× scale of the native 400 × 300 panel, rendered in true 1-bit black & white as the e-ink display shows it. Quote set in Bitter with the time phrase bolded; attribution and date set in Courier Prime.*
+*Shown at 2× scale of the native 400 × 300 panel, rendered in true 1-bit black & white as the e-ink display shows it. Quote set in Bitter with the time phrase bolded; attribution, clock labels, and calendar set in Courier Prime.*
 
 This project takes the idea from
 [zenbuffy/LiteraryClock](https://github.com/zenbuffy/LiteraryClock) and
 [the original Literary Clock](https://www.instructables.com/Literary-Clock-Made-From-E-reader/)
 and rebuilds the presentation layer:
 
-- **Split layout** — the quote occupies the left 2/3; a clock + date occupies the right 1/3.
+- **Split layout** — the quote occupies the left 2/3; a clock + month calendar occupies the right 1/3.
 - **Live rendering** — frames are drawn on the fly each minute (no pre-generated image library to build or store).
 - **Bolded time phrase** — the words that spell out the current time stand out in heavy weight.
 - **Typographic contrast** — quote set in **Bitter** (a slab serif chosen because its even stroke weight stays crisp on 1-bit e-ink), attribution/date set in **Courier Prime**.
-- **Two-hand analog clock** — a clean face (tick marks, no numbers) showing the current time, with the weekday and full date beneath it.
+- **Two-hand analog clock** — a clean face (tick marks, no numbers) at the top of the right panel showing the current time.
+- **Month calendar** — below the clock, a compact month grid with weekday headers and today's date boxed and bolded.
 - **Auto-fit** — quote text scales to fit; long attributions wrap to a second line.
 
 ## Hardware
