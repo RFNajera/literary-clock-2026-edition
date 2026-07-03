@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
-frame.png
-preview*.png
+/frame.png
+/preview*.png
 *.egg-info/
 .venv/
 venv/

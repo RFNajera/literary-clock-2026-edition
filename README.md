@@ -10,19 +10,9 @@ The **time phrase within the quote is bolded** so you can read the time at a
 glance, the **book and author** appear below in a contrasting typeface, and a
 **two-hand analog clock** with the **weekday and date** fills the right panel.
 
-```
-+-----------------------------------+-----------------+
-|  Three twenty-three! Is that      |      __         |
-|  all? Doesn't time - no, I've     |    /  |  \      |
-|  already said that, thought       |   |   +-->|     |   <- analog clock
-|  that. I sit and watch the        |   |  /     |    |      (2 hands, no numbers)
-|  seconds change on the watch...   |    \____/       |
-|                                   |                 |
-|  Espedair Street - Iain Banks     |     Friday      |   <- weekday (bold)
-|                                   |   Jul 03, 2026  |   <- date
-+-----------------------------------+-----------------+
-   quote panel (left 2/3)              clock panel (right 1/3)
-```
+![Literary Clock 2026 Edition preview — a book quote with the time phrase "Three twenty-three!" in bold on the left, and a two-hand analog clock with the weekday and date on the right](docs/preview.png)
+
+*Rendered at 2× scale of the native 400 × 300 panel. Quote set in Playfair Display with the time phrase bolded; attribution and date set in Courier Prime.*
 
 This project takes the idea from
 [zenbuffy/LiteraryClock](https://github.com/zenbuffy/LiteraryClock) and
