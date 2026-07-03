@@ -34,7 +34,8 @@ def push_to_inky(img):
     """Send the rendered image to the Inky wHAT (black & white)."""
     from inky.auto import auto
 
-    display = auto(ask_user=True, verbose=True)
+    # ask_user=False so it runs unattended under cron (no terminal to prompt).
+    display = auto(ask_user=False, verbose=False)
     # Inky wHAT B&W expects the image sized to the panel; render.py already
     # produces 400x300. Convert to the display's palette-friendly mode.
     display.set_image(img.convert("1").convert("P"))
