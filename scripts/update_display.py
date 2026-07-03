@@ -31,14 +31,37 @@ CSV = os.path.join(_ROOT, "litclock_annotated_improved.csv")
 
 
 def push_to_inky(img):
-    """Send the rendered image to the Inky wHAT (black & white)."""
+    """Send the rendered image to the Inky wHAT (black & white).
+
+    render() returns an 8-bit grayscale ("L") image where 0 = black ink and
+    255 = white background. The Inky library does not interpret raw grayscale
+    or a generic palette correctly for e-ink; it expects a mode "P" image whose
+    pixels are the display's own palette indices (display.BLACK / display.WHITE).
+    So we build a "P" image sized to the panel and map every pixel accordingly.
+    """
+    from PIL import Image
     from inky.auto import auto
 
     # ask_user=False so it runs unattended under cron (no terminal to prompt).
     display = auto(ask_user=False, verbose=False)
-    # Inky wHAT B&W expects the image sized to the panel; render.py already
-    # produces 400x300. Convert to the display's palette-friendly mode.
-    display.set_image(img.convert("1").convert("P"))
+
+    # Match the panel's resolution and orientation exactly.
+    src = img.convert("L").resize(display.resolution)
+    # Threshold to pure black/white, then map to the Inky palette indices.
+    bw = src.point(lambda p: 255 if p >= 128 else 0, mode="1")
+
+    out = Image.new("P", display.resolution, display.WHITE)
+    black_mask = bw.point(lambda p: 255 if p == 0 else 0, mode="1")
+    # Paint black ink where the source was dark.
+    black_layer = Image.new("P", display.resolution, display.BLACK)
+    out.paste(black_layer, (0, 0), black_mask)
+
+    try:
+        display.set_border(display.WHITE)
+    except (NotImplementedError, AttributeError):
+        pass
+
+    display.set_image(out)
     display.show()
 
 
